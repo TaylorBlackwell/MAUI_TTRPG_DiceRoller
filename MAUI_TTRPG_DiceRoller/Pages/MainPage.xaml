@@ -1,0 +1,551 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:pageModels="clr-namespace:MAUI_TTRPG_DiceRoller.PageModels"             
+             xmlns:models="clr-namespace:MAUI_TTRPG_DiceRoller.Models"
+             x:Class="MAUI_TTRPG_DiceRoller.Pages.MainPage"
+             x:Name="MainPageRef"
+             x:DataType="pageModels:DiceRollerPageModel"
+             Title="TTRPG Dice Roller">
+
+    <ContentPage.ToolbarItems>
+        <ToolbarItem Text="About" Command="{Binding ShowAboutCommand}" />
+    </ContentPage.ToolbarItems>
+
+    <ContentPage.Resources>
+        <Style TargetType="Border" x:Key="DialogOverlay">
+            <Setter Property="BackgroundColor" Value="{AppThemeBinding Light=#80000000, Dark=#80000000}" />
+            <Setter Property="Padding" Value="0" />
+        </Style>
+    </ContentPage.Resources>
+
+    <Grid>
+        <ScrollView>
+            <VerticalStackLayout Padding="20" Spacing="20">
+
+                <!-- Saved Presets -->
+                <Border StrokeThickness="2" Stroke="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
+                        BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray900}}"
+                        Padding="15"
+                        IsVisible="{Binding SavedPresets.Count, Converter={StaticResource IsNotNullConverter}}">
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="10"/>
+                    </Border.StrokeShape>
+                    <VerticalStackLayout Spacing="10">
+                        <Label Text="Saved Presets" FontSize="18" FontAttributes="Bold" HorizontalTextAlignment="Center" />
+                        <CollectionView ItemsSource="{Binding SavedPresets}" MaximumHeightRequest="200">
+                            <CollectionView.ItemTemplate>
+                                <DataTemplate x:DataType="models:RollPreset">
+                                    <Border StrokeThickness="1" Stroke="{AppThemeBinding Light={StaticResource Gray300}, Dark={StaticResource Gray700}}"
+                                            Padding="10" Margin="0,5">
+                                        <Border.StrokeShape>
+                                            <RoundRectangle CornerRadius="5"/>
+                                        </Border.StrokeShape>
+                                        <Grid ColumnDefinitions="*, Auto, Auto" ColumnSpacing="10">
+                                            <Label Text="{Binding DisplayText}" FontSize="14" VerticalOptions="Center" />
+                                            <Button Text="Load" Grid.Column="1" 
+                                                    Command="{Binding Source={RelativeSource AncestorType={x:Type pageModels:DiceRollerPageModel}}, Path=LoadPresetCommand}"
+                                                    CommandParameter="{Binding .}"
+                                                    FontSize="13"
+                                                    WidthRequest="70" />
+                                            <Button Text="Delete" Grid.Column="2" 
+                                                    Command="{Binding Source={RelativeSource AncestorType={x:Type pageModels:DiceRollerPageModel}}, Path=DeletePresetCommand}"
+                                                    CommandParameter="{Binding .}"
+                                                    BackgroundColor="{AppThemeBinding Light=#CC0000, Dark=#FF4444}"
+                                                    FontSize="13"
+                                                    WidthRequest="70" />
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </CollectionView.ItemTemplate>
+                        </CollectionView>
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Dice Selection -->
+                <Border StrokeThickness="2" Stroke="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
+                        BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray900}}"
+                        Padding="15">
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="10"/>
+                    </Border.StrokeShape>
+                    <VerticalStackLayout Spacing="15">
+                        <Label Text="Select Dice Type" FontSize="18" FontAttributes="Bold" />
+                        <Picker ItemsSource="{Binding AvailableDiceTypes}"
+                                SelectedItem="{Binding SelectedDiceType}"
+                                Title="Choose a die"
+                                FontSize="16" />
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Number of Dice -->
+                <Border StrokeThickness="2" Stroke="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
+                        BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray900}}"
+                        Padding="15">
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="10"/>
+                    </Border.StrokeShape>
+                    <VerticalStackLayout Spacing="15">
+                        <Label Text="Number of Dice" FontSize="18" FontAttributes="Bold" />
+                        <HorizontalStackLayout Spacing="10" HorizontalOptions="Center">
+                            <Button Text="-" Command="{Binding DecrementDiceCommand}" 
+                                    WidthRequest="60" HeightRequest="60" FontSize="24" />
+                            <Label Text="{Binding NumberOfDice}" FontSize="32" FontAttributes="Bold" 
+                                   VerticalOptions="Center" WidthRequest="80" HorizontalTextAlignment="Center" />
+                            <Button Text="+" Command="{Binding IncrementDiceCommand}" 
+                                    WidthRequest="60" HeightRequest="60" FontSize="24" />
+                        </HorizontalStackLayout>
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Modifier -->
+                <Border StrokeThickness="2" Stroke="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
+                        BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray900}}"
+                        Padding="15">
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="10"/>
+                    </Border.StrokeShape>
+                    <VerticalStackLayout Spacing="15">
+                        <Label Text="Modifier" FontSize="18" FontAttributes="Bold" />
+                        <HorizontalStackLayout Spacing="10" HorizontalOptions="Center">
+                            <Button Text="-" Command="{Binding DecrementModifierCommand}" 
+                                    WidthRequest="60" HeightRequest="60" FontSize="24" />
+                            <Label Text="{Binding Modifier}" FontSize="32" FontAttributes="Bold" 
+                                   VerticalOptions="Center" WidthRequest="80" HorizontalTextAlignment="Center" />
+                            <Button Text="+" Command="{Binding IncrementModifierCommand}" 
+                                    WidthRequest="60" HeightRequest="60" FontSize="24" />
+                        </HorizontalStackLayout>
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Keep Highest/Lowest Controls -->
+                <Border StrokeThickness="2" Stroke="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
+                        BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray900}}"
+                        Padding="15"
+                        IsVisible="{Binding IsD6Selected}">
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="10"/>
+                    </Border.StrokeShape>
+                    <VerticalStackLayout Spacing="15">
+                        <Label Text="Keep Dice Options" FontSize="18" FontAttributes="Bold" />
+                        <Grid ColumnDefinitions="*, *" ColumnSpacing="10">
+                            <VerticalStackLayout Spacing="10">
+                                <Label Text="Keep Highest" FontSize="14" HorizontalTextAlignment="Center" />
+                                <HorizontalStackLayout Spacing="5" HorizontalOptions="Center">
+                                    <Button Text="-" Command="{Binding DecrementKeepHighestCommand}" 
+                                            WidthRequest="45" HeightRequest="45" FontSize="20" />
+                                    <Label Text="{Binding KeepHighest}" FontSize="24" FontAttributes="Bold" 
+                                           VerticalOptions="Center" WidthRequest="50" HorizontalTextAlignment="Center" />
+                                    <Button Text="+" Command="{Binding IncrementKeepHighestCommand}" 
+                                            WidthRequest="45" HeightRequest="45" FontSize="20" />
+                                </HorizontalStackLayout>
+                            </VerticalStackLayout>
+                            <VerticalStackLayout Spacing="10" Grid.Column="1">
+                                <Label Text="Keep Lowest" FontSize="14" HorizontalTextAlignment="Center" />
+                                <HorizontalStackLayout Spacing="5" HorizontalOptions="Center">
+                                    <Button Text="-" Command="{Binding DecrementKeepLowestCommand}" 
+                                            WidthRequest="45" HeightRequest="45" FontSize="20" />
+                                    <Label Text="{Binding KeepLowest}" FontSize="24" FontAttributes="Bold" 
+                                           VerticalOptions="Center" WidthRequest="50" HorizontalTextAlignment="Center" />
+                                    <Button Text="+" Command="{Binding IncrementKeepLowestCommand}" 
+                                            WidthRequest="45" HeightRequest="45" FontSize="20" />
+                                </HorizontalStackLayout>
+                            </VerticalStackLayout>
+                        </Grid>
+                        <Label Text="Leave both at 0 to keep all dice" FontSize="12" 
+                               HorizontalTextAlignment="Center"
+                               TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray400}}" />
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Exploding D6 Toggle -->
+                <Border StrokeThickness="2" Stroke="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
+                        BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray900}}"
+                        Padding="15"
+                        IsVisible="{Binding IsD6Selected}">
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="10"/>
+                    </Border.StrokeShape>
+                    <HorizontalStackLayout Spacing="15" HorizontalOptions="Center">
+                        <Label Text="Exploding D6" FontSize="18" FontAttributes="Bold" VerticalOptions="Center" />
+                        <Switch IsToggled="{Binding ExplodingDiceEnabled}" 
+                                VerticalOptions="Center"
+                                OnColor="{StaticResource Primary}" />
+                    </HorizontalStackLayout>
+                </Border>
+
+                <!-- D20 Advantage/Disadvantage Toggles -->
+                <Border StrokeThickness="2" Stroke="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
+                        BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray900}}"
+                        Padding="15"
+                        IsVisible="{Binding IsD20Selected}">
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="10"/>
+                    </Border.StrokeShape>
+                    <VerticalStackLayout Spacing="10">
+                        <Label Text="D20 Rolling Options" FontSize="18" FontAttributes="Bold" HorizontalTextAlignment="Center" />
+                        <HorizontalStackLayout Spacing="20" HorizontalOptions="Center">
+                            <HorizontalStackLayout Spacing="10">
+                                <Label Text="Advantage" FontSize="16" VerticalOptions="Center" />
+                                <Switch IsToggled="{Binding AdvantageEnabled}" 
+                                        VerticalOptions="Center"
+                                        OnColor="#00AA00" />
+                            </HorizontalStackLayout>
+                            <HorizontalStackLayout Spacing="10">
+                                <Label Text="Disadvantage" FontSize="16" VerticalOptions="Center" />
+                                <Switch IsToggled="{Binding DisadvantageEnabled}" 
+                                        VerticalOptions="Center"
+                                        OnColor="#CC0000" />
+                            </HorizontalStackLayout>
+                        </HorizontalStackLayout>
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Save Current as Preset Button -->
+                <Button Text="SAVE CURRENT AS PRESET" Command="{Binding SaveCurrentAsPresetCommand}" 
+                        FontSize="16" FontAttributes="Bold"
+                        HeightRequest="50"
+                        BackgroundColor="{AppThemeBinding Light={StaticResource Gray400}, Dark={StaticResource Gray700}}"
+                        TextColor="White" />
+
+                <!-- Roll Button -->
+                <Button Text="ROLL DICE" Command="{Binding RollCommand}" 
+                        FontSize="20" FontAttributes="Bold"
+                        HeightRequest="70"
+                        BackgroundColor="{StaticResource Primary}"
+                        TextColor="White" />
+
+                <!-- Last Roll Result -->
+                <Border StrokeThickness="2" Stroke="{StaticResource Primary}"
+                        BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray900}}"
+                        Padding="20"
+                        IsVisible="{Binding LastRoll, Converter={StaticResource IsNotNullConverter}}">
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="10"/>
+                    </Border.StrokeShape>
+                    <VerticalStackLayout Spacing="10">
+                        <Label Text="Result" FontSize="18" FontAttributes="Bold" HorizontalTextAlignment="Center" />
+                        <Label Text="{Binding LastRoll.FormattedRoll}" FontSize="16" HorizontalTextAlignment="Center" />
+
+                        <!-- Critical Hit/Fail Indicators -->
+                        <Label Text="CRITICAL HIT!" FontSize="24" FontAttributes="Bold" 
+                               HorizontalTextAlignment="Center" TextColor="#00FF00"
+                               IsVisible="{Binding LastRoll.IsCriticalSuccess}" />
+                        <Label Text="CRITICAL FAIL!" FontSize="24" FontAttributes="Bold" 
+                               HorizontalTextAlignment="Center" TextColor="#FF0000"
+                               IsVisible="{Binding LastRoll.IsCriticalFailure}" />
+
+                        <Label Text="{Binding LastRoll.Total}" FontSize="48" FontAttributes="Bold" 
+                               HorizontalTextAlignment="Center" TextColor="{StaticResource Primary}" />
+
+                        <!-- Individual Dice -->
+                        <Label Text="Dice Rolled:" FontSize="14" FontAttributes="Bold" HorizontalTextAlignment="Center" 
+                               Margin="0,10,0,5"/>
+                        <FlexLayout Wrap="Wrap" JustifyContent="Center" AlignItems="Center" BindableLayout.ItemsSource="{Binding LastRoll.IndividualRolls}">
+                            <BindableLayout.ItemTemplate>
+                                <DataTemplate x:DataType="x:Int32">
+                                    <Border StrokeThickness="1" Stroke="{StaticResource Primary}" 
+                                            BackgroundColor="{StaticResource Primary}" 
+                                            Padding="8" Margin="3">
+                                        <Border.StrokeShape>
+                                            <RoundRectangle CornerRadius="5"/>
+                                        </Border.StrokeShape>
+                                        <Label Text="{Binding .}" FontSize="16" FontAttributes="Bold" 
+                                               TextColor="White" HorizontalTextAlignment="Center" VerticalTextAlignment="Center" />
+                                    </Border>
+                                </DataTemplate>
+                            </BindableLayout.ItemTemplate>
+                        </FlexLayout>
+
+                        <!-- Dropped Dice (Keep Highest/Lowest) -->
+                        <Label Text="Dropped Dice (not counted):" FontSize="14" FontAttributes="Bold" HorizontalTextAlignment="Center" 
+                               Margin="0,10,0,5" IsVisible="{Binding LastRoll.DroppedDice.Count, Converter={StaticResource IsNotNullConverter}}"/>
+                        <FlexLayout Wrap="Wrap" JustifyContent="Center" AlignItems="Center" BindableLayout.ItemsSource="{Binding LastRoll.DroppedDice}">
+                            <BindableLayout.ItemTemplate>
+                                <DataTemplate x:DataType="x:Int32">
+                                    <Border StrokeThickness="1" Stroke="{AppThemeBinding Light=#888888, Dark=#666666}" 
+                                            BackgroundColor="{AppThemeBinding Light=#CCCCCC, Dark=#333333}" 
+                                            Padding="8" Margin="3">
+                                        <Border.StrokeShape>
+                                            <RoundRectangle CornerRadius="5"/>
+                                        </Border.StrokeShape>
+                                        <Label FontSize="16" FontAttributes="Bold" 
+                                               TextColor="{AppThemeBinding Light=#888888, Dark=#666666}" 
+                                               HorizontalTextAlignment="Center" VerticalTextAlignment="Center">
+                                            <Label.FormattedText>
+                                                <FormattedString>
+                                                    <Span Text="{Binding .}" TextDecorations="Strikethrough" />
+                                                </FormattedString>
+                                            </Label.FormattedText>
+                                        </Label>
+                                    </Border>
+                                </DataTemplate>
+                            </BindableLayout.ItemTemplate>
+                        </FlexLayout>
+
+                        <!-- Removed Sixes (Exploded) -->
+                        <Label Text="Exploded (not counted):" FontSize="14" FontAttributes="Bold" HorizontalTextAlignment="Center" 
+                               Margin="0,10,0,5" IsVisible="{Binding LastRoll.RemovedSixes.Count, Converter={StaticResource IsNotNullConverter}}"/>
+                        <FlexLayout Wrap="Wrap" JustifyContent="Center" AlignItems="Center" BindableLayout.ItemsSource="{Binding LastRoll.RemovedSixes}">
+                            <BindableLayout.ItemTemplate>
+                                <DataTemplate x:DataType="x:Int32">
+                                    <Border StrokeThickness="1" Stroke="{AppThemeBinding Light=#CC0000, Dark=#FF4444}" 
+                                            BackgroundColor="{AppThemeBinding Light=#FFCCCC, Dark=#442222}" 
+                                            Padding="8" Margin="3">
+                                        <Border.StrokeShape>
+                                            <RoundRectangle CornerRadius="5"/>
+                                        </Border.StrokeShape>
+                                        <Label FontSize="16" FontAttributes="Bold" 
+                                               TextColor="{AppThemeBinding Light=#CC0000, Dark=#FF4444}" 
+                                               HorizontalTextAlignment="Center" VerticalTextAlignment="Center">
+                                            <Label.FormattedText>
+                                                <FormattedString>
+                                                    <Span Text="{Binding .}" TextDecorations="Strikethrough" />
+                                                </FormattedString>
+                                            </Label.FormattedText>
+                                        </Label>
+                                    </Border>
+                                </DataTemplate>
+                            </BindableLayout.ItemTemplate>
+                        </FlexLayout>
+
+                        <!-- Advantage/Disadvantage Rolls -->
+                        <VerticalStackLayout Spacing="10" IsVisible="{Binding LastRoll.HasAdvantage}" Margin="0,10,0,0">
+                            <Label Text="Advantage Rolls:" FontSize="14" FontAttributes="Bold" HorizontalTextAlignment="Center" />
+                            <HorizontalStackLayout Spacing="10" HorizontalOptions="Center">
+                                <Border StrokeThickness="2" Padding="10"
+                                        Stroke="{Binding LastRoll.Roll1Color}"
+                                        BackgroundColor="Transparent">
+                                    <Border.StrokeShape>
+                                        <RoundRectangle CornerRadius="5"/>
+                                    </Border.StrokeShape>
+                                    <Label Text="{Binding LastRoll.AdvantageRoll1}" FontSize="24" FontAttributes="Bold" 
+                                           TextColor="{Binding LastRoll.Roll1Color}"
+                                           HorizontalTextAlignment="Center" VerticalTextAlignment="Center" />
+                                </Border>
+                                <Border StrokeThickness="2" Padding="10"
+                                        Stroke="{Binding LastRoll.Roll2Color}"
+                                        BackgroundColor="Transparent">
+                                    <Border.StrokeShape>
+                                        <RoundRectangle CornerRadius="5"/>
+                                    </Border.StrokeShape>
+                                    <Label Text="{Binding LastRoll.AdvantageRoll2}" FontSize="24" FontAttributes="Bold" 
+                                           TextColor="{Binding LastRoll.Roll2Color}"
+                                           HorizontalTextAlignment="Center" VerticalTextAlignment="Center" />
+                                </Border>
+                            </HorizontalStackLayout>
+                            <Label Text="(Kept higher roll in green)" FontSize="12" HorizontalTextAlignment="Center" 
+                                   TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray400}}" />
+                        </VerticalStackLayout>
+
+                        <VerticalStackLayout Spacing="10" IsVisible="{Binding LastRoll.HasDisadvantage}" Margin="0,10,0,0">
+                            <Label Text="Disadvantage Rolls:" FontSize="14" FontAttributes="Bold" HorizontalTextAlignment="Center" />
+                            <HorizontalStackLayout Spacing="10" HorizontalOptions="Center">
+                                <Border StrokeThickness="2" Padding="10"
+                                        Stroke="{Binding LastRoll.Roll1Color}"
+                                        BackgroundColor="Transparent">
+                                    <Border.StrokeShape>
+                                        <RoundRectangle CornerRadius="5"/>
+                                    </Border.StrokeShape>
+                                    <Label Text="{Binding LastRoll.AdvantageRoll1}" FontSize="24" FontAttributes="Bold" 
+                                           TextColor="{Binding LastRoll.Roll1Color}"
+                                           HorizontalTextAlignment="Center" VerticalTextAlignment="Center" />
+                                </Border>
+                                <Border StrokeThickness="2" Padding="10"
+                                        Stroke="{Binding LastRoll.Roll2Color}"
+                                        BackgroundColor="Transparent">
+                                    <Border.StrokeShape>
+                                        <RoundRectangle CornerRadius="5"/>
+                                    </Border.StrokeShape>
+                                    <Label Text="{Binding LastRoll.AdvantageRoll2}" FontSize="24" FontAttributes="Bold" 
+                                           TextColor="{Binding LastRoll.Roll2Color}"
+                                           HorizontalTextAlignment="Center" VerticalTextAlignment="Center" />
+                                </Border>
+                            </HorizontalStackLayout>
+                            <Label Text="(Kept lower roll in green)" FontSize="12" HorizontalTextAlignment="Center" 
+                                   TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray400}}" />
+                        </VerticalStackLayout>
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Roll History -->
+                <Border StrokeThickness="2" Stroke="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource Gray600}}"
+                        BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray900}}"
+                        Padding="15">
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="10"/>
+                    </Border.StrokeShape>
+                    <VerticalStackLayout Spacing="10">
+                        <Label Text="Roll History" FontSize="18" FontAttributes="Bold" HorizontalTextAlignment="Center" />
+                        <Button Text="Clear History" Command="{Binding ClearHistoryCommand}" 
+                                HorizontalOptions="Center"
+                                IsVisible="{Binding RollHistory.Count, Converter={StaticResource IsNotNullConverter}}" />
+
+                        <CollectionView ItemsSource="{Binding RollHistory}" MaximumHeightRequest="400">
+                            <CollectionView.ItemTemplate>
+                                <DataTemplate x:DataType="models:DiceRoll">
+                                    <Border StrokeThickness="1" Stroke="{AppThemeBinding Light={StaticResource Gray300}, Dark={StaticResource Gray700}}"
+                                            Padding="10" Margin="0,5">
+                                        <Border.StrokeShape>
+                                            <RoundRectangle CornerRadius="5"/>
+                                        </Border.StrokeShape>
+                                        <VerticalStackLayout Spacing="5">
+                                            <HorizontalStackLayout Spacing="10" HorizontalOptions="Center">
+                                                <Label Text="{Binding FormattedRoll}" FontSize="14" FontAttributes="Bold" />
+                                                <Label Text="=" FontSize="14" />
+                                                <Label Text="{Binding Total}" FontSize="16" FontAttributes="Bold" 
+                                                       TextColor="{StaticResource Primary}" />
+                                            </HorizontalStackLayout>
+
+                                            <!-- Critical indicators in history -->
+                                            <Label Text="CRIT!" FontSize="12" FontAttributes="Bold" 
+                                                   HorizontalTextAlignment="Center" TextColor="#00FF00"
+                                                   IsVisible="{Binding IsCriticalSuccess}" />
+                                            <Label Text="FAIL!" FontSize="12" FontAttributes="Bold" 
+                                                   HorizontalTextAlignment="Center" TextColor="#FF0000"
+                                                   IsVisible="{Binding IsCriticalFailure}" />
+
+                                            <!-- Individual Dice -->
+                                            <FlexLayout Wrap="Wrap" JustifyContent="Center" AlignItems="Center" 
+                                                        BindableLayout.ItemsSource="{Binding IndividualRolls}">
+                                                <BindableLayout.ItemTemplate>
+                                                    <DataTemplate x:DataType="x:Int32">
+                                                        <Label Text="{Binding .}" FontSize="12" FontAttributes="Bold" 
+                                                               Padding="4,2" Margin="2"
+                                                               TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray400}}" />
+                                                    </DataTemplate>
+                                                </BindableLayout.ItemTemplate>
+                                            </FlexLayout>
+
+                                            <!-- Dropped Dice in History -->
+                                            <FlexLayout Wrap="Wrap" JustifyContent="Center" AlignItems="Center" 
+                                                        BindableLayout.ItemsSource="{Binding DroppedDice}"
+                                                        IsVisible="{Binding DroppedDice.Count, Converter={StaticResource IsNotNullConverter}}">
+                                                <BindableLayout.ItemTemplate>
+                                                    <DataTemplate x:DataType="x:Int32">
+                                                        <Label FontSize="12" Padding="4,2" Margin="2"
+                                                               TextColor="{AppThemeBinding Light=#888888, Dark=#666666}">
+                                                            <Label.FormattedText>
+                                                                <FormattedString>
+                                                                    <Span Text="{Binding .}" TextDecorations="Strikethrough" />
+                                                                </FormattedString>
+                                                            </Label.FormattedText>
+                                                        </Label>
+                                                    </DataTemplate>
+                                                </BindableLayout.ItemTemplate>
+                                            </FlexLayout>
+
+                                            <!-- Removed Sixes -->
+                                            <FlexLayout Wrap="Wrap" JustifyContent="Center" AlignItems="Center" 
+                                                        BindableLayout.ItemsSource="{Binding RemovedSixes}"
+                                                        IsVisible="{Binding RemovedSixes.Count, Converter={StaticResource IsNotNullConverter}}">
+                                                <BindableLayout.ItemTemplate>
+                                                    <DataTemplate x:DataType="x:Int32">
+                                                        <Label FontSize="12" Padding="4,2" Margin="2"
+                                                               TextColor="{AppThemeBinding Light=#CC0000, Dark=#FF4444}">
+                                                            <Label.FormattedText>
+                                                                <FormattedString>
+                                                                    <Span Text="{Binding .}" TextDecorations="Strikethrough" />
+                                                                </FormattedString>
+                                                            </Label.FormattedText>
+                                                        </Label>
+                                                    </DataTemplate>
+                                                </BindableLayout.ItemTemplate>
+                                            </FlexLayout>
+                                        </VerticalStackLayout>
+                                    </Border>
+                                </DataTemplate>
+                            </CollectionView.ItemTemplate>
+                        </CollectionView>
+                    </VerticalStackLayout>
+                </Border>
+
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <!-- Preset Save Dialog -->
+        <AbsoluteLayout IsVisible="{Binding ShowPresetDialog}" 
+                        BackgroundColor="{AppThemeBinding Light=#80000000, Dark=#80000000}"
+                        AbsoluteLayout.LayoutBounds="0,0,1,1" 
+                        AbsoluteLayout.LayoutFlags="All">
+            <Border StrokeThickness="2" Stroke="{StaticResource Primary}"
+                    BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray900}}"
+                    Padding="20"
+                    AbsoluteLayout.LayoutBounds="0.5,0.5,0.8,AutoSize"
+                    AbsoluteLayout.LayoutFlags="PositionProportional,WidthProportional">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="10"/>
+                </Border.StrokeShape>
+                <VerticalStackLayout Spacing="15">
+                    <Label Text="Save Preset" FontSize="20" FontAttributes="Bold" HorizontalTextAlignment="Center" />
+                    <Entry Placeholder="Enter preset name" 
+                           Text="{Binding NewPresetName}"
+                           FontSize="16" />
+                    <Grid ColumnDefinitions="*, *" ColumnSpacing="10">
+                        <Button Text="Save" Grid.Column="0"
+                                Command="{Binding ConfirmSavePresetCommand}"
+                                BackgroundColor="{StaticResource Primary}"
+                                TextColor="White" />
+                        <Button Text="Cancel" Grid.Column="1"
+                                Command="{Binding CancelSavePresetCommand}"
+                                BackgroundColor="{AppThemeBinding Light={StaticResource Gray400}, Dark={StaticResource Gray700}}"
+                                TextColor="White" />
+                    </Grid>
+                </VerticalStackLayout>
+            </Border>
+        </AbsoluteLayout>
+
+        <!-- About Dialog -->
+        <AbsoluteLayout IsVisible="{Binding ShowAboutDialog}" 
+                        BackgroundColor="{AppThemeBinding Light=#80000000, Dark=#80000000}"
+                        AbsoluteLayout.LayoutBounds="0,0,1,1" 
+                        AbsoluteLayout.LayoutFlags="All">
+            <Border StrokeThickness="2" Stroke="{StaticResource Primary}"
+                    BackgroundColor="{AppThemeBinding Light={StaticResource Gray100}, Dark={StaticResource Gray900}}"
+                    Padding="20"
+                    AbsoluteLayout.LayoutBounds="0.5,0.5,0.85,AutoSize"
+                    AbsoluteLayout.LayoutFlags="PositionProportional,WidthProportional">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="10"/>
+                </Border.StrokeShape>
+                <VerticalStackLayout Spacing="20">
+                    <Label Text="About" FontSize="24" FontAttributes="Bold" HorizontalTextAlignment="Center" />
+
+                    <Label Text="TTRPG Dice Roller" FontSize="18" FontAttributes="Bold" 
+                           HorizontalTextAlignment="Center" />
+
+                    <VerticalStackLayout Spacing="10">
+                        <Label Text="Made and copyrighted by" FontSize="14" 
+                               HorizontalTextAlignment="Center"
+                               TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray400}}" />
+                        <Label Text="ScaleTech: Industries" FontSize="16" FontAttributes="Bold"
+                               HorizontalTextAlignment="Center" />
+                    </VerticalStackLayout>
+
+                    <VerticalStackLayout Spacing="8">
+                        <Label Text="Contact:" FontSize="14" 
+                               HorizontalTextAlignment="Center"
+                               TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray400}}" />
+                        <Label Text="ScaleTech_Industries@proton.me" FontSize="14" 
+                               HorizontalTextAlignment="Center"
+                               TextColor="{AppThemeBinding Light={StaticResource Gray600}, Dark={StaticResource Gray400}}" />
+                        <Button Text="Copy Email" 
+                                Command="{Binding CopyEmailCommand}"
+                                BackgroundColor="{AppThemeBinding Light={StaticResource Gray400}, Dark={StaticResource Gray700}}"
+                                TextColor="White"
+                                FontSize="14"
+                                Padding="10,5"
+                                HorizontalOptions="Center" />
+                    </VerticalStackLayout>
+
+                    <Button Text="Close" 
+                            Command="{Binding CloseAboutCommand}"
+                            BackgroundColor="{StaticResource Primary}"
+                            TextColor="White"
+                            Margin="0,10,0,0" />
+                </VerticalStackLayout>
+            </Border>
+        </AbsoluteLayout>
+    </Grid>
+
+</ContentPage>

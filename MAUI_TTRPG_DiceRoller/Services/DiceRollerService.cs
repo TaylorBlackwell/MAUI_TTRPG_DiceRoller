@@ -6,6 +6,59 @@ public class DiceRollerService
 {
     private readonly Random _random = new();
 
+    public DiceRoll RollDicePool(IEnumerable<DicePoolEntry> pool)
+    {
+        ArgumentNullException.ThrowIfNull(pool);
+
+        var poolList = pool.ToList();
+        if (poolList.Count == 0)
+        {
+            throw new ArgumentException("Dice pool cannot be empty", nameof(pool));
+        }
+
+        var allRolls = new List<int>();
+        var poolResults = new List<DicePoolRollResult>();
+        int totalModifier = 0;
+
+        foreach (var entry in poolList)
+        {
+            var entryRolls = new List<int>();
+            for (int i = 0; i < entry.NumberOfDice; i++)
+            {
+                var roll = _random.Next(1, (int)entry.DiceType + 1);
+                entryRolls.Add(roll);
+                allRolls.Add(roll);
+            }
+
+            var entrySubtotal = entryRolls.Sum() + entry.Modifier;
+            totalModifier += entry.Modifier;
+
+            poolResults.Add(new DicePoolRollResult
+            {
+                DiceType = entry.DiceType,
+                NumberOfDice = entry.NumberOfDice,
+                Modifier = entry.Modifier,
+                IndividualRolls = entryRolls,
+                Subtotal = entrySubtotal
+            });
+        }
+
+        var sum = allRolls.Sum();
+        var total = sum + totalModifier;
+
+        return new DiceRoll
+        {
+            DiceType = poolList[0].DiceType,
+            NumberOfDice = poolList.Sum(e => e.NumberOfDice),
+            Modifier = totalModifier,
+            IndividualRolls = allRolls,
+            Total = total,
+            RolledAt = DateTime.Now,
+            IsPoolRoll = true,
+            PoolResults = poolResults
+        };
+    }
+
     public DiceRoll RollDice(DiceType diceType, int numberOfDice, int modifier, bool explodingDice = false, bool advantage = false, bool disadvantage = false, int keepHighest = 0, int keepLowest = 0)
     {
         ArgumentOutOfRangeException.ThrowIfLessThan(numberOfDice, 1);

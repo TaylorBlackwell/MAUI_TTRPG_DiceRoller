@@ -2,6 +2,7 @@ namespace MAUI_TTRPG_DiceRoller.Models;
 
 public enum DiceType
 {
+    D2 = 2,
     D4 = 4,
     D6 = 6,
     D8 = 8,

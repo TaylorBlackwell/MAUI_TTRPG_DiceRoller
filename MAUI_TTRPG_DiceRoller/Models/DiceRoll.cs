@@ -12,6 +12,8 @@ public class DiceRoll
     public int KeepLowest { get; set; }
     public int Total { get; set; }
     public DateTime RolledAt { get; set; }
+    public bool IsPoolRoll { get; set; }
+    public List<DicePoolRollResult> PoolResults { get; set; } = [];
 
     public bool HasAdvantage { get; set; }
     public bool HasDisadvantage { get; set; }
@@ -21,7 +23,7 @@ public class DiceRoll
     public bool IsCriticalSuccess => DiceType == DiceType.D20 && IndividualRolls.Any(r => r == 20);
     public bool IsCriticalFailure => DiceType == DiceType.D20 && IndividualRolls.Any(r => r == 1);
 
-    public string FormattedRoll => $"{NumberOfDice}d{(int)DiceType}{(Modifier >= 0 ? "+" : "")}{Modifier}";
+    public string FormattedRoll => IsPoolRoll ? "Pool Roll" : $"{NumberOfDice}d{(int)DiceType}{(Modifier >= 0 ? "+" : "")}{Modifier}";
     public string IndividualRollsDisplay => string.Join(", ", IndividualRolls);
 
     public bool Roll1IsKept => HasAdvantage 

@@ -50,6 +50,9 @@ public partial class DiceRollerPageModel : ObservableObject
     private ObservableCollection<RollPreset> _savedPresets = [];
 
     [ObservableProperty]
+    private ObservableCollection<DicePoolEntry> _dicePool = [];
+
+    [ObservableProperty]
     private bool _showPresetDialog = false;
 
     [ObservableProperty]
@@ -60,6 +63,7 @@ public partial class DiceRollerPageModel : ObservableObject
 
     public List<DiceType> AvailableDiceTypes { get; } =
     [
+        DiceType.D2,
         DiceType.D4,
         DiceType.D6,
         DiceType.D8,
@@ -73,6 +77,7 @@ public partial class DiceRollerPageModel : ObservableObject
     public bool IsD6Selected => SelectedDiceType == DiceType.D6;
     public bool IsD20Selected => SelectedDiceType == DiceType.D20;
     public bool HasKeepDice => KeepHighest > 0 || KeepLowest > 0;
+    public bool HasDiceInPool => DicePool.Count > 0;
 
     public DiceRollerPageModel(DiceRollerService diceRollerService, PresetRepository presetRepository, DiceNotationParser notationParser)
     {
@@ -85,6 +90,8 @@ public partial class DiceRollerPageModel : ObservableObject
     [RelayCommand]
     private void Roll()
     {
+        HapticFeedback.Default.Perform(HapticFeedbackType.Click);
+
         var roll = _diceRollerService.RollDice(SelectedDiceType, NumberOfDice, Modifier, ExplodingDiceEnabled, AdvantageEnabled, DisadvantageEnabled, KeepHighest, KeepLowest);
         LastRoll = roll;
         RollHistory.Insert(0, roll);
@@ -93,6 +100,54 @@ public partial class DiceRollerPageModel : ObservableObject
         {
             RollHistory.RemoveAt(RollHistory.Count - 1);
         }
+    }
+
+    [RelayCommand]
+    private void RollPool()
+    {
+        if (DicePool.Count == 0)
+        {
+            return;
+        }
+
+        HapticFeedback.Default.Perform(HapticFeedbackType.Click);
+
+        var roll = _diceRollerService.RollDicePool(DicePool);
+        LastRoll = roll;
+        RollHistory.Insert(0, roll);
+
+        if (RollHistory.Count > 50)
+        {
+            RollHistory.RemoveAt(RollHistory.Count - 1);
+        }
+    }
+
+    [RelayCommand]
+    private void AddToDicePool()
+    {
+        var entry = new DicePoolEntry
+        {
+            DiceType = SelectedDiceType,
+            NumberOfDice = NumberOfDice,
+            Modifier = Modifier
+        };
+
+        DicePool.Add(entry);
+        OnPropertyChanged(nameof(HasDiceInPool));
+    }
+
+    [RelayCommand]
+    private void RemoveFromDicePool(DicePoolEntry entry)
+    {
+        DicePool.Remove(entry);
+        OnPropertyChanged(nameof(HasDiceInPool));
+    }
+
+    [RelayCommand]
+    private void ClearDicePool()
+    {
+        DicePool.Clear();
+        OnPropertyChanged(nameof(HasDiceInPool));
     }
 
     [RelayCommand]

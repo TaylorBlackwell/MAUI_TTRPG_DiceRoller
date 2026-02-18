@@ -242,10 +242,22 @@ public partial class DiceRollerPageModel : ObservableObject
     }
 
     [RelayCommand]
-    private void DeletePreset(RollPreset preset)
+    private async Task DeletePreset(RollPreset preset)
     {
-        _presetRepository.DeletePreset(preset.Id);
-        LoadPresets();
+        // Show confirmation dialog
+        bool confirmed = await Shell.Current.DisplayAlertAsync(
+            "Confirm Deletion",
+            $"Are you sure you want to delete '{preset.Name}'?",
+            "Yes",
+            "No"
+        );
+
+        // Only delete if user confirmed
+        if (confirmed)
+        {
+            _presetRepository.DeletePreset(preset.Id);
+            LoadPresets();
+        }
     }
 
     [RelayCommand]
